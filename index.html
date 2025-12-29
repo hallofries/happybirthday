@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>happiest birthday gio!</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    /* FONT */
+    @font-face {
+      font-family: 'Caffe Lungo DEMO';
+      src: url('fonts/CaffeLungo-Demo.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Caffe Lungo DEMO', cursive;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      min-height: 100svh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      background-image:
+        url("image/bg.png"),
+        radial-gradient(circle at top, #01120a);
+      background-size: cover, cover;
+      background-position: center, center;
+      background-repeat: no-repeat, no-repeat;
+    }
+
+    body:not(.revealed) {
+      background-position: -9999px center, center;
+    }
+
+    body.revealed {
+      background-position: center, -9999px;
+    }
+
+    #container {
+      text-align: center;
+      width: 100%;
+      max-width: 420px;
+      padding: 0 16px;
+    }
+
+    #message {
+      font-size: clamp(18px, 4.5vw, 38px);
+      letter-spacing: 1.5px;
+      color: #9b3a3a;
+      opacity: 0;
+      transform: scale(0.85);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      line-height: 1.1;
+      text-transform: lowercase;
+      margin-bottom: 15px;
+      margin-top: 10px; /* 👈 pushes text slightly lower */
+    }
+
+    #message span {
+      display: block;
+    }
+
+    #message .love {
+      font-size: 1em;
+      margin-top: 6px;
+    }
+
+    #message.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    #gift {
+      width: min(220px, 65vw);
+      cursor: pointer;
+      margin-top: 6vh;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+
+    #gift:hover {
+      transform: scale(1.08) rotate(-3deg);
+    }
+
+    #gift.pop {
+      transform: scale(1.6) rotate(18deg);
+      opacity: 0;
+    }
+
+    #hint {
+      margin-top: 12px;
+      font-size: 22px;
+      letter-spacing: 1px;
+      color: #9b3a3a;
+    }
+
+    @media (max-height: 600px) {
+      #gift {
+        margin-top: 3vh;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="container">
+    <div id="message">
+      <span>happiest birthday, gio!</span>
+      <span class="love">i love you &lt;3</span>
+    </div>
+
+    <img id="gift" src="image/gift.png" alt="Wrapped Gift" />
+    <div id="hint">click here!</div>
+  </div>
+
+  <link rel="preload" as="image" href="image/bg.png">
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <audio id="music" preload="auto">
+    <source src="https://cdn.pixabay.com/audio/2023/03/30/audio_9e1c90fa53.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    const gift = document.getElementById("gift");
+    const message = document.getElementById("message");
+    const music = document.getElementById("music");
+    const hint = document.getElementById("hint");
+    const body = document.body;
+
+    let fired = false;
+
+    const cozyColors = [
+      "#7a2e2e",
+      "#9b3a3a",
+      "#3f6f52",
+      "#5f8f6d",
+      "#e8d8b7",
+      "#c8b07a"
+    ];
+
+    gift.addEventListener("click", () => {
+      if (fired) return;
+      fired = true;
+
+      body.classList.add("revealed");
+      gift.classList.add("pop");
+      hint.style.display = "none";
+
+      music.volume = 0.85;
+      music.play();
+
+      message.classList.add("show");
+
+      confetti({
+        particleCount: 170,
+        spread: 120,
+        startVelocity: 55,
+        gravity: 1,
+        scalar: 1.1,
+        colors: cozyColors,
+        origin: { y: 0.55 }
+      });
+
+      const end = Date.now() + 1000;
+      (function fall() {
+        confetti({
+          particleCount: 10,
+          startVelocity: 20,
+          spread: 80,
+          gravity: 1.2,
+          scalar: 0.9,
+          colors: cozyColors,
+          origin: { x: Math.random(), y: -0.1 }
+        });
+        if (Date.now() < end) requestAnimationFrame(fall);
+      })();
+    });
+  </script>
+
+</body>
+</html>
