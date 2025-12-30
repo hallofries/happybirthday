@@ -6,17 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
-    /* FONT */
     @font-face {
-      font-family: 'Caffe Lungo DEMO';
-      src: url('fonts/CaffeLungo-Demo.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
+      font-family: 'Mochibop';
     }
 
     * {
       box-sizing: border-box;
-      font-family: 'Caffe Lungo DEMO', cursive;
+      font-family: 'Mochibop';
     }
 
     html, body {
@@ -32,7 +28,6 @@
       display: flex;
       justify-content: center;
       align-items: center;
-
       background-image:
         url("image/bg.png"),
         radial-gradient(circle at top, #01120a);
@@ -56,31 +51,37 @@
       padding: 0 16px;
     }
 
-    #message {
+    #message,
+    #next {
       font-size: clamp(18px, 4.5vw, 38px);
       letter-spacing: 1.5px;
       color: #9b3a3a;
+      line-height: 1.1;
+      margin-bottom: 15px;
+      margin-top: -30px;
       opacity: 0;
       transform: scale(0.85);
       transition: opacity 0.5s ease, transform 0.5s ease;
-      line-height: 1.1;
-      text-transform: lowercase;
-      margin-bottom: 15px;
-      margin-top: 10px; /* 👈 pushes text slightly lower */
     }
 
-    #message span {
-      display: block;
+    #message.show,
+    #next.show {
+      opacity: 1;
+      transform: scale(1);
     }
 
     #message .love {
-      font-size: 1em;
-      margin-top: 6px;
+      display: block;
+      margin-top: 4px;
     }
 
-    #message.show {
-      opacity: 1;
-      transform: scale(1);
+    #next {
+      cursor: pointer;
+      display: none;
+    }
+
+    #next:hover {
+      transform: scale(1.06);
     }
 
     #gift {
@@ -90,26 +91,20 @@
       transition: transform 0.25s ease, opacity 0.25s ease;
     }
 
-    #gift:hover {
+    #gift:hover:not(.pop) {
       transform: scale(1.08) rotate(-3deg);
     }
 
     #gift.pop {
       transform: scale(1.6) rotate(18deg);
       opacity: 0;
+      pointer-events: none;
     }
 
     #hint {
       margin-top: 12px;
       font-size: 22px;
-      letter-spacing: 1px;
       color: #9b3a3a;
-    }
-
-    @media (max-height: 600px) {
-      #gift {
-        margin-top: 3vh;
-      }
     }
   </style>
 </head>
@@ -122,6 +117,8 @@
       <span class="love">i love you &lt;3</span>
     </div>
 
+    <div id="next">let’s blow out the candles!</div>
+
     <img id="gift" src="image/gift.png" alt="Wrapped Gift" />
     <div id="hint">click here!</div>
   </div>
@@ -130,24 +127,31 @@
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-  <audio id="music" preload="auto">
-    <source src="https://cdn.pixabay.com/audio/2023/03/30/audio_9e1c90fa53.mp3" type="audio/mpeg">
-  </audio>
+  <!-- AUDIO -->
+  <audio id="hb8bit" src="image/hb8bit.mp3" preload="auto"></audio>
+  <audio id="fireplace" src="image/fireplace.mp3" preload="auto" loop></audio>
+  <audio id="confettipop" src="image/confettipop.mp3" preload="auto"></audio>
+  <audio id="confetti" src="image/confetti.mp3" preload="auto"></audio>
 
   <script>
     const gift = document.getElementById("gift");
     const message = document.getElementById("message");
-    const music = document.getElementById("music");
+    const next = document.getElementById("next");
     const hint = document.getElementById("hint");
     const body = document.body;
+
+    const music = document.getElementById("hb8bit");
+    const fireplace = document.getElementById("fireplace");
+    const pop = document.getElementById("confettipop");
+    const confettiSound = document.getElementById("confetti");
 
     let fired = false;
 
     const cozyColors = [
-      "#7a2e2e",
-      "#9b3a3a",
-      "#3f6f52",
-      "#5f8f6d",
+      "#FC8382",
+      "#8AB9C9",
+      "#FDD569",
+      "#DDF987",
       "#e8d8b7",
       "#c8b07a"
     ];
@@ -159,35 +163,67 @@
       body.classList.add("revealed");
       gift.classList.add("pop");
       hint.style.display = "none";
-
-      music.volume = 0.85;
-      music.play();
-
       message.classList.add("show");
 
-      confetti({
-        particleCount: 170,
-        spread: 120,
-        startVelocity: 55,
-        gravity: 1,
-        scalar: 1.1,
-        colors: cozyColors,
-        origin: { y: 0.55 }
-      });
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
 
-      const end = Date.now() + 1000;
-      (function fall() {
-        confetti({
-          particleCount: 10,
-          startVelocity: 20,
-          spread: 80,
-          gravity: 1.2,
-          scalar: 0.9,
-          colors: cozyColors,
-          origin: { x: Math.random(), y: -0.1 }
+          confetti({
+            particleCount: 170,
+            spread: 120,
+            startVelocity: 55,
+            gravity: 1,
+            scalar: 1.1,
+            colors: cozyColors,
+            origin: { y: 0.55 }
+          });
+
+          const end = Date.now() + 1000;
+          (function fall() {
+            confetti({
+              particleCount: 10,
+              startVelocity: 20,
+              spread: 80,
+              gravity: 1.2,
+              scalar: 0.9,
+              colors: cozyColors,
+              origin: { x: Math.random(), y: -0.1 }
+            });
+            if (Date.now() < end) requestAnimationFrame(fall);
+          })();
+
+          setTimeout(() => {
+            music.volume = 0.85;
+            fireplace.volume = 0.35;
+            pop.volume = 1;
+            confettiSound.volume = 0.9;
+
+            pop.play();
+            confettiSound.play();
+            music.play();
+            fireplace.play();
+          }, 120);
         });
-        if (Date.now() < end) requestAnimationFrame(fall);
-      })();
+      });
+    });
+
+    /* 🎵 WHEN MUSIC ENDS → SWITCH TEXT */
+    music.addEventListener("ended", () => {
+      message.classList.remove("show");
+
+      setTimeout(() => {
+        message.style.display = "none";
+        next.style.display = "block";
+
+        requestAnimationFrame(() => {
+          next.classList.add("show");
+        });
+      }, 500);
+    });
+
+    /* 👉 CLICK TO GO TO CAKE */
+    next.addEventListener("click", () => {
+      window.location.href = "cake.html";
     });
   </script>
 

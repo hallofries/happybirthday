@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Candle Blow</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prefixfree/1.0.7/prefixfree.min.js"></script>
+
+    <!-- CONFETTI -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<style>
+body {
+    background-image: url("image/bg2.png");
+    background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+
+}
+
+.candle-count-display {
+  text-align: center;
+  margin-top: 150px;
+  margin-bottom: 20px;
+  font-family: 'Mochibop';
+  font-size: 30px;
+  color: #9b3a3a;
+  padding: 10px;
+  border-radius: 10px;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.candle-count-display span {
+  font-weight: bold;
+  color: #9b3a3a;
+}
+
+/* =========================
+   NEW: "Make a wish!" line
+   - Positioned absolutely so it doesn't push the candle count.
+   - Same visual style as the candle-count line.
+   - Has a fade/slide transition for smooth appearance/disappearance.
+   ========================= */
+.make-wish {
+  position: absolute; /* doesn't affect normal document flow */
+  top: 110px; /* ~ 30-40px above the candle-count's margin-top (150px) */
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  text-align: center;
+  font-family: 'Mochibop';
+  font-size: 30px;
+  color: #9b3a3a;
+  padding: 10px;
+  border-radius: 10px;
+  width: fit-content;
+  pointer-events: none; /* non-interactive */
+  opacity: 0;
+  transition: opacity 360ms ease, transform 360ms ease;
+  z-index: 50;
+}
+
+/* visible state for .make-wish */
+.make-wish.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* =========================
+   NEW: Replacement wishes message
+   - Same visual style and exact position as the candle-count-display.
+   - Hidden initially, shown after all candles blown out in place of the count.
+   ========================= */
+#wishesMessage {
+  display: none;
+  text-align: center;
+  margin-top: 150px;
+  margin-bottom: 20px;
+  font-family: 'Mochibop';
+  font-size: 30px;
+  color: #9b3a3a;
+  padding: 10px;
+  border-radius: 10px;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  opacity: 0;
+  transition: opacity 360ms ease;
+}
+
+/* visible state */
+#wishesMessage.show {
+  display: block;
+  opacity: 1;
+}
+
+.cake {
+  position: absolute;
+  width: 250px;
+  height: 200px;
+  top: 50%;
+  left: 50%;
+  margin-top: -70px;
+  margin-left: -125px;
+}
+
+.plate {
+  width: 270px;
+  height: 110px;
+  position: absolute;
+  bottom: -10px;
+  left: -10px;
+  background-color: #ccc;
+  border-radius: 50%;
+  box-shadow: 0 2px 0 #b3b3b3, 0 4px 0 #b3b3b3, 0 5px 40px rgba(0, 0, 0, 0.5);
+}
+
+.cake > * {
+  position: absolute;
+}
+
+.layer {
+  width: 250px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: #553c13;
+  box-shadow:
+    0 2px 0px #6a4b18,
+    0 4px 0px #33240b,
+    0 6px 0px #32230b,
+    0 8px 0px #31230b,
+    0 10px 0px #30220b,
+    0 12px 0px #2f220b,
+    0 14px 0px #2f210a,
+    0 16px 0px #2e200a,
+    0 18px 0px #2d200a,
+    0 20px 0px #2c1f0a,
+    0 22px 0px #2b1f0a,
+    0 24px 0px #2a1e09,
+    0 26px 0px #2a1d09,
+    0 28px 0px #291d09,
+    0 30px 0px #281c09;
+}
+
+.layer-top { top: 0px; }
+.layer-middle { top: 33px; }
+.layer-bottom { top: 66px; }
+
+.icing {
+  top: 2px;
+  left: 5px;
+  background-color: #f0e4d0;
+  width: 240px;
+  height: 90px;
+  border-radius: 50%;
+}
+
+.icing:before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  bottom: 6px;
+  left: 5px;
+  background-color: #f4ebdc;
+  box-shadow: 0 0 4px #f6efe3;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.drip {
+  width: 50px;
+  height: 60px;
+  border-bottom-left-radius: 25px;
+  border-bottom-right-radius: 25px;
+  background-color: #f0e4d0;
+}
+
+.drip1 { top: 53px; left: 5px; transform: skewY(15deg); height: 48px; width: 40px; }
+.drip2 { top: 69px; left: 181px; transform: skewY(-15deg); }
+.drip3 { top: 54px; left: 90px; width: 80px; border-radius: 0 0 40px 40px; }
+
+.candle {
+  background-color: #7B020B;
+  width: 12px;
+  height: 35px;
+  border-radius: 6px/3px;
+  top: -20px;
+  left: 50%;
+  margin-left: -8px;
+  z-index: 10;
+}
+
+.candle:before {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #ad030f;
+}
+
+.candle.out .flame {
+  display: none;
+}
+
+.flame {
+  position: absolute;
+  background-color: orange;
+  width: 10px;
+  height: 25px;
+  border-radius: 8px / 20px;
+  top: -34px;
+  left: 50%;
+  margin-left: -7.5px;
+  animation: flicker 1s infinite alternate;
+}
+
+@keyframes flicker {
+  from { transform: skewX(5deg); }
+  to { transform: skewX(-5deg); }
+}
+</style>
+  </head>
+
+  <body>
+
+    <!-- NEW element: "Make a wish!" (separate line, appears above the count while placing candles) -->
+    <div class="make-wish" id="makeWish">Make a wish!</div>
+
+    <!-- original candle count line (kept in place, unchanged) -->
+    <div class="candle-count-display" id="candleCountContainer">
+      Candles on the Cake: <span id="candleCount">0</span>
+    </div>
+
+    <!-- NEW element: replacement wishes text that will appear in place of the "Candles on the Cake: 0" -->
+    <div id="wishesMessage">May all your wishes come true!</div>
+
+    <div class="cake">
+      <div class="plate"></div>
+      <div class="layer layer-bottom"></div>
+      <div class="layer layer-middle"></div>
+      <div class="layer layer-top"></div>
+      <div class="icing"></div>
+      <div class="drip drip1"></div>
+      <div class="drip drip2"></div>
+      <div class="drip drip3"></div>
+    </div>
+
+    <!-- AUDIO -->
+    <audio id="confettipop" src="image/confettipop.mp3" preload="auto"></audio>
+    <audio id="confettiSound" src="image/confetti.mp3" preload="auto"></audio>
+    <audio id="yaySound" src="image/yay.mp3" preload="auto"></audio>
+    <audio id="xpSound" src="image/xp.mp3" preload="auto"></audio>
+    <audio id="song" src="image/song.m4a" preload="auto"></audio>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const cake = document.querySelector(".cake");
+  const candleCountDisplay = document.getElementById("candleCount");
+  const candleCountContainer = document.getElementById("candleCountContainer");
+
+  const popSound = document.getElementById("confettipop");
+  const confettiSound = document.getElementById("confettiSound");
+  const yaySound = document.getElementById("yaySound");
+  const xpSound = document.getElementById("xpSound");
+  const song = document.getElementById("song");
+
+  // NEW references to the added elements
+  const makeWishEl = document.getElementById("makeWish"); // "Make a wish!" (above)
+  const wishesMessageEl = document.getElementById("wishesMessage"); // replacement message
+
+  let candles = [];
+  let audioContext, analyser, microphone;
+  let celebrationFired = false;
+  let songStarted = false;
+
+  const cozyColors = [
+    "#FC8382",
+    "#8AB9C9",
+    "#FDD569",
+    "#DDF987",
+    "#e8d8b7",
+    "#c8b07a"
+  ];
+
+  function triggerCelebration() {
+    if (celebrationFired) return;
+    celebrationFired = true;
+
+    // big initial explosion (kept as-is)
+    confetti({
+      particleCount: 180,
+      spread: 120,
+      startVelocity: 55,
+      gravity: 1,
+      colors: cozyColors,
+      origin: { y: 0.55 }
+    });
+
+    // ====== TUNED: lighter "rain" after explosion ======
+    // Reduced duration and particle counts so top-down confetti is much lighter.
+    // I changed: end time (shorter), particleCount (smaller), startVelocity (lower),
+    // spread (tighter), gravity (slightly reduced) and origin y (less off-screen).
+    const end = Date.now() + 600; // shorter rain duration (was 1000)
+    (function rain() {
+      confetti({
+        particleCount: 6,      // fewer pieces per iteration (was 10)
+        startVelocity: 12,     // slower falling (was 20)
+        spread: 60,            // tighter spread (was 80)
+        gravity: 0.9,          // slightly less gravity for gentler fall (was 1.2)
+        colors: cozyColors,
+        origin: { x: Math.random(), y: -0.05 } // slightly less high starting point
+      });
+      if (Date.now() < end) requestAnimationFrame(rain);
+    })();
+    // ===================================================
+
+  popSound.currentTime = 0;
+confettiSound.currentTime = 0;
+yaySound.currentTime = 0;
+xpSound.currentTime = 0;
+
+/* volume tuning */
+popSound.volume = 0.35;
+confettiSound.volume = 0.35;
+yaySound.volume = 0.4;
+xpSound.volume = 0.3;
+
+popSound.play();
+confettiSound.play();
+yaySound.play();
+xpSound.play();
+
+    // NEW: after celebration, hide the "Make a wish!" if still visible
+    makeWishEl.classList.remove("show");
+
+    // NEW: show the wishes message in place of the candle count
+    // Hide the original count line (but don't remove it from the DOM)
+    candleCountContainer.style.display = "none";
+    // Show wishes message (with fade-in)
+    wishesMessageEl.classList.add("show");
+  }
+
+  function updateCandleCount() {
+    const active = candles.filter(c => !c.classList.contains("out")).length;
+    candleCountDisplay.textContent = active;
+    if (active === 0 && candles.length > 0) {
+      // All candles blown out -> trigger celebration which will replace the count text.
+      triggerCelebration();
+    }
+  }
+
+  function addCandle(left, top) {
+    const candle = document.createElement("div");
+    candle.className = "candle";
+    candle.style.left = left + "px";
+    candle.style.top = top + "px";
+
+    const flame = document.createElement("div");
+    flame.className = "flame";
+    candle.appendChild(flame);
+
+    cake.appendChild(candle);
+    candles.push(candle);
+
+    /* 🎵 START SONG ON FIRST CANDLE */
+    if (!songStarted) {
+      songStarted = true;
+      song.volume = 1;
+      song.play();
+
+      // NEW: When song starts (user is placing candles), show "Make a wish!" smoothly
+      // only if celebration hasn't already fired
+      if (!celebrationFired) {
+        // small timeout to let the transition feel smoother
+        setTimeout(() => {
+          makeWishEl.classList.add("show");
+        }, 120);
+      }
+    }
+
+    updateCandleCount();
+  }
+
+  cake.addEventListener("click", e => {
+    const r = cake.getBoundingClientRect();
+    addCandle(e.clientX - r.left, e.clientY - r.top);
+  });
+
+  function isBlowing() {
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(data);
+    return data.reduce((a, b) => a + b) / data.length > 40;
+  }
+
+  function blowOutCandles() {
+    if (!isBlowing()) return;
+    candles.forEach(c => {
+      if (!c.classList.contains("out") && Math.random() > 0.5) {
+        c.classList.add("out");
+      }
+    });
+    updateCandleCount();
+
+    // NEW: When blow starts (candles being put out), hide "Make a wish!"
+    // This ensures it disappears right after blowing-out action begins.
+    if (!celebrationFired) {
+      makeWishEl.classList.remove("show");
+    }
+  }
+
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+    audioContext = new AudioContext();
+    analyser = audioContext.createAnalyser();
+    microphone = audioContext.createMediaStreamSource(stream);
+    microphone.connect(analyser);
+    analyser.fftSize = 256;
+    setInterval(blowOutCandles, 200);
+  });
+});
+
+
+</script>
+
+  </body>
+</html>
